@@ -1,9 +1,6 @@
-Product Name: Just Finder! | Lightweight Find Tool
+Just Finder! | Lightweight Find Tool
 Short Description: A minimalist, floating in-page search tool. Zero bloat, drag-and-drop interface, and smart highlighting.
 
-[Store Description Content]
-
-Introduction
 Native browser search (Ctrl+F) is functional but often bulky and intrusive. Just Finder! is designed for digital minimalists who need focus, not features they don't use. It provides a lightweight, floating search bar that respects your screen space and privacy.
 
 ⚡ What It Does
