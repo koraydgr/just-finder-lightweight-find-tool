@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Just Finder! | Lightweight Text Finder",
-  "version": "1.0",
+  "version": "1.0.1",
   "description": "A minimalist, floating in-page search tool. Zero bloat, drag-and-drop interface, and smart highlighting. Just what you need.",
   "permissions": [
     "activeTab",
-    "scripting"
+	"scripting"
   ],
   "background": {
     "service_worker": "background.js"

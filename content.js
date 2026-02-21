@@ -209,7 +209,7 @@
 
         <div class="finder-box" id="box">
           <div class="header" id="dragHeader">
-            <span class="title">Just Finder! <span class="version">v1.0</span></span>
+            <span class="title">Just Finder! <span class="version">v1.0.1</span></span>
             <div class="close-btn" id="closeBtn">✕</div>
           </div>
           
@@ -322,41 +322,57 @@
             
             const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
             let node;
-            const nodesToHighlight = [];
+            const nodeRanges = [];
+            let fullText = '';
 
             while (node = walker.nextNode()) {
                 if (node.parentNode.tagName === 'SCRIPT' || node.parentNode.tagName === 'STYLE' || node.parentNode.closest('#just-finder-root')) continue;
-                if (regex.test(node.nodeValue)) {
-                    nodesToHighlight.push(node);
-                }
+                const len = node.nodeValue.length;
+                nodeRanges.push({ node, startChar: fullText.length, endChar: fullText.length + len });
+                fullText += node.nodeValue;
             }
 
-            nodesToHighlight.forEach(node => {
+            const matchInfos = [];
+            let m;
+            regex.lastIndex = 0;
+            while ((m = regex.exec(fullText)) !== null) {
+                matchInfos.push({ start: m.index, end: m.index + m[0].length });
+            }
+
+            matchInfos.forEach(() => matches.push([]));
+
+            const segmentsByNode = new Map();
+            nodeRanges.forEach(range => {
+                matchInfos.forEach((matchInfo, matchIdx) => {
+                    if (range.endChar <= matchInfo.start || range.startChar >= matchInfo.end) return;
+                    const nodeStart = Math.max(0, matchInfo.start - range.startChar);
+                    const nodeEnd = Math.min(range.node.nodeValue.length, matchInfo.end - range.startChar);
+                    if (!segmentsByNode.has(range.node)) segmentsByNode.set(range.node, []);
+                    segmentsByNode.get(range.node).push({ start: nodeStart, end: nodeEnd, matchIdx });
+                });
+            });
+
+            nodeRanges.forEach(range => {
+                const segs = segmentsByNode.get(range.node);
+                if (!segs) return;
+                segs.sort((a, b) => a.start - b.start);
+                const text = range.node.nodeValue;
                 const fragment = document.createDocumentFragment();
-                regex.lastIndex = 0;
-                const text = node.nodeValue;
-                let lastIndex = 0;
-                let match;
-                
-                while ((match = regex.exec(text)) !== null) {
-                    const before = text.substring(lastIndex, match.index);
-                    if (before) fragment.appendChild(document.createTextNode(before));
-                    
+                let prevEnd = 0;
+                segs.forEach(seg => {
+                    if (seg.start > prevEnd) fragment.appendChild(document.createTextNode(text.substring(prevEnd, seg.start)));
                     const span = document.createElement('span');
                     span.className = 'jf-highlight';
                     span.style.backgroundColor = '#ccff00'; 
                     span.style.color = 'inherit';
                     span.style.borderRadius = '2px';
-                    span.textContent = match[0];
+                    span.textContent = text.substring(seg.start, seg.end);
                     fragment.appendChild(span);
-                    matches.push(span);
-                    
-                    lastIndex = regex.lastIndex;
-                }
-                const after = text.substring(lastIndex);
-                if (after) fragment.appendChild(document.createTextNode(after));
-                
-                node.parentNode.replaceChild(fragment, node);
+                    matches[seg.matchIdx].push(span);
+                    prevEnd = seg.end;
+                });
+                if (prevEnd < text.length) fragment.appendChild(document.createTextNode(text.substring(prevEnd)));
+                range.node.parentNode.replaceChild(fragment, range.node);
             });
 
             if (matches.length > 0) {
@@ -407,15 +423,17 @@
         }
 
         function highlightCurrent() {
-            matches.forEach(m => {
+            matches.forEach(group => group.forEach(m => {
                 m.style.backgroundColor = '#ccff00'; 
                 m.style.boxShadow = 'none';
-            });
+            }));
             const current = matches[currentMatchIndex];
-            if (current) {
-                current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                current.style.backgroundColor = '#00ff00';
-                current.style.boxShadow = '0 0 6px rgba(0, 255, 0, 0.6)';
+            if (current && current.length) {
+                current[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                current.forEach(m => {
+                    m.style.backgroundColor = '#00ff00';
+                    m.style.boxShadow = '0 0 6px rgba(0, 255, 0, 0.6)';
+                });
             }
             updateUI();
         }
