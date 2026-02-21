@@ -34,14 +34,13 @@ No External Servers: The extension runs entirely within your browser's local env
 
 Minimal Permissions: We use activeTab to ensure the extension only runs on the specific tab you click on, not on your entire browsing history.
 
-🛠 Configuration & Requirements
-
-Version: 1.0
-
-Permissions Required: activeTab, scripting (Used strictly for injecting the search UI).
-
-Compatibility: Works on any HTTP/HTTPS website. (Does not run on restricted chrome:// system pages).
-
 📜 Version History
+
+### v1.0.1 (Current)
+* Resolved core bugs preventing the floating UI from rendering smoothly.
+* Restored necessary `scripting` permissions for seamless content injection.
+* Optimized background script logic for a cleaner user experience.
+* Implemented strict monochrome design system.
+
 
 v1.0 (Initial Release): Launched with core floating search, drag-and-drop capability, and case-sensitive/exact-match filters.
